@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin Modern - My Rent Cars</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 20px -2px rgba(0,0,0,0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR RESPONSIVE & MOBILE DRAWER --- */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 40;
+            display: none;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 50;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-header {
+            padding: 12px 12px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+
+        .menu-item i {
+            font-size: 16px;
+            width: 20px;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: #eff6ff;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* --- MAIN CONTENT & NAVBAR --- */
+        .main-wrapper {
+            flex-grow: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            transition: margin-left 0.3s ease;
+        }
+
+        .topbar {
+            height: 64px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-main);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .btn-logout-icon {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            margin-left: 6px;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+
+        .btn-logout-icon:hover {
+            transform: scale(1.15);
+        }
+
+        .content-body {
+            padding: 24px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* --- STAT CARDS GRID --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-info .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-info .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-icon.blue { background: #eff6ff; color: #2563eb; }
+        .stat-icon.green { background: #ecfdf5; color: #10b981; }
+        .stat-icon.cyan { background: #ecfeff; color: #06b6d4; }
+        .stat-icon.yellow { background: #fffbeb; color: #f59e0b; }
+
+        /* --- CHARTS CONTAINER --- */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            min-width: 0;
+        }
+
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .chart-card-title {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+
+        /* --- VIEW PANELS & FORM MODAL STYLE --- */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        .card-box {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover { background: var(--primary-dark); }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .form-control, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            outline: none;
+            background: var(--surface);
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* --- STYLES UNTUK UPLOAD FOTO & PRICING CARD --- */
+        .photo-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .photo-upload-item {
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            text-align: center;
+            background: #fafafa;
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .price-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .price-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-card-gallery {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 8px;
+            background: #f1f5f9;
+        }
+
+        .price-card-gallery img {
+            width: 90px;
+            height: 65px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .price-card-body {
+            padding: 16px;
+            flex-grow: 1;
+        }
+
+        .price-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 13px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+        }
+
+        /* --- STYLES KALENDER OPERASIONAL / BOOKING --- */
+        .calendar-card {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 28px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .calendar-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .calendar-nav-btn {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .calendar-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            text-align: center;
+        }
+
+        .day-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding-bottom: 12px;
+        }
+
+        .day-cell {
+            background: #f8fafc;
+            border-radius: 14px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 15px;
+            color: #334155;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-cell:hover {
+            background: #e2e8f0;
+        }
+
+        .day-cell.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .day-cell.today {
+            background: #1e3a8a;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        /* TANDA TITIK MERAH BOOKING KONSUMEN */
+        .red-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 8px;
+            box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);
+        }
+
+        .calendar-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 992px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .chart-container { height: 230px; }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .sidebar-overlay.show { display: block; }
+            .main-wrapper { margin-left: 0; }
+            .mobile-toggle { display: block; }
+            .content-body { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .chart-container { height: 210px; }
+            .calendar-card { padding: 16px; }
+            .day-cell { height: 50px; font-size: 13px; border-radius: 10px; }
+            .calendar-nav-btn { width: 36px; height: 36px; }
+        }
+
+        /* --- RESPONSIVE GMAPS CONTAINER --- */
+        .gmap-responsive-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            .gmap-responsive-container {
+                height: 280px;
+            }
+        }
+
+        /* --- STYLES POPUP MODAL MODERN --- */
+        .custom-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .custom-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 28px 24px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            transform: scale(0.9);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid var(--border-color);
+        }
+
+        .custom-modal-overlay.active .custom-modal-card {
+            transform: scale(1);
+        }
+
+        .custom-modal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px auto;
+            font-size: 22px;
+        }
+
+        .custom-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .custom-modal-message {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .custom-modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-modal-cancel {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid var(--border-color);
+            background: #f1f5f9;
+            color: var(--text-main);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-modal-confirm {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: var(--danger);
+            color: white;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-modal-confirm:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY MOBIL DRAWER -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <img src="logo.png" alt="Logo">
+            <span>My Rent Cars</span>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a class="menu-item active" onclick="switchTab('dashboard', this)">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="menu-header">Master Kendaraan</li>
+            <li>
+                <a class="menu-item" onclick="switchTab('data-kendaraan', this)">
+                    <i class="fas fa-car"></i> Data Kendaraan
+                </a>
+            </li>
+            <li>
+                <a class="menu-item" onclick="switchTab('daftar-harga', this)">
+                    <i class="fas fa-tags"></i> Daftar Harga Sewa
+                </a>
+            </li>
+
+            <li class="menu-header">Master Pemesan</li>
+            <li>
+                <a class="menu-item" onclick="switchTab('data-pemesan', this)">
+                    <i class="fas fa-users"></i> Data Pemesan
+                </a>
+            </li>
+            <li>
+                <a class="menu-item" onclick="switchTab('data-jenis-bayar', this)">
+                    <i class="fas fa-wallet"></i> Data Jenis Bayar
+                </a>
+            </li>
+            <li>
+                <a class="menu-item" onclick="switchTab('kalender-booking', this)">
+                    <i class="fas fa-calendar-alt"></i> Kalender Booking
+                </a>
+            </li>
+
+            <li class="menu-header">Master Pesanan</li>
+            <li>
+                <a class="menu-item" onclick="switchTab('data-perjalanan', this)">
+                    <i class="fas fa-map-marked-alt"></i> Data Perjalanan
+                </a>
+            </li>
+            <li>
+              <a class="menu-item" onclick="switchTab('lacak-kendaraan', this)">
+                    <i class="fas fa-solid fa-car"></i> Lacak Kendaraan
+                </a>
+            </li>
+            <li>
+                <a class="menu-item" onclick="switchTab('data-pesanan', this)">
+                    <i class="fas fa-file-invoice-dollar"></i> Data Pesanan
+                </a>
+            </li>
+
+            <li class="menu-header">Pengaturan</li>
+            <li>
+                <a class="menu-item" onclick="switchTab('manajemen-akun', this)">
+                    <i class="fas fa-user-cog"></i> Manajemen Akun
+                </a>
+            </li>
+            <li>
+                <a class="menu-item" onclick="handleLogout()" style="color: var(--danger);">
+                    <i class="fas fa-sign-out-alt"></i> Keluar (Log Out)
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <button class="mobile-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="user-profile">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <span style="font-size: 13px; font-weight: 600;">Administrator</span>
+                <button class="btn-logout-icon" onclick="handleLogout()" title="Keluar / Log Out">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="content-body">
+
+            <!-- 1. DASHBOARD VIEW -->
+            <div id="view-dashboard" class="view-panel active">
+                <h1 class="page-title">Dashboard Analistik Rental</h1>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="stat-label">Total Armada</div>
+                            <div class="stat-value" id="stat-total-armada">0 Unit</div>
+                        </div>
+                        <div class="stat-icon blue"><i class="fas fa-car"></i></div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="stat-label">Pemesan Aktif</div>
+                            <div class="stat-value" id="stat-pemesan-aktif">0 Orang</div>
+                        </div>
+                        <div class="stat-icon green"><i class="fas fa-users"></i></div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="stat-label">Pesanan Bulan Ini</div>
+                            <div class="stat-value" id="stat-pesanan-bulan-ini">0 Transaksi</div>
+                        </div>
+                        <div class="stat-icon cyan"><i class="fas fa-receipt"></i></div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <div class="stat-label">Omzet Sewa</div>
+                            <div class="stat-value" id="stat-omzet-sewa">Rp 0</div>
+                        </div>
+                        <div class="stat-icon yellow"><i class="fas fa-coins"></i></div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">Grafik Omzet Transaksi Sewa Realtime</div>
+                            <span style="font-size: 12px; color: var(--success); font-weight: 600;"><i class="fas fa-circle" style="font-size:8px;"></i> Live Data</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="omzetChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div class="chart-card-title">Status Kendaraan</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="statusKendaraanChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. DATA KENDARAAN VIEW & FORM TAMBAH -->
+            <div id="view-data-kendaraan" class="view-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h1 class="page-title" style="margin: 0;">Data Kendaraan</h1>
+                    <button class="btn-primary" onclick="toggleFormKendaraan()"><i class="fas fa-plus"></i> Tambah Kendaraan</button>
+                </div>
+
+                <div id="formKendaraanBox" class="card-box" style="display: none; border-left: 4px solid var(--primary);">
+                    <h3 style="font-size: 16px; margin-bottom: 16px;">Form Tambah Kendaraan Baru</h3>
+                    <form id="formTambahKendaraan" onsubmit="handleTambahKendaraan(event)">
+                        
+                        <div class="form-group">
+                            <label class="form-label">• Merek Kendaraan :</label>
+                            <select class="form-select" id="merek-select" onchange="onMerekChange()" required>
+                                <option value="">-- Pilih Merek Kendaraan --</option>
+                                <option value="Toyota">Toyota</option>
+                                <option value="Daihatsu">Daihatsu</option>
+                                <option value="Nissan">Nissan</option>
+                                <option value="Mitsubishi">Mitsubishi</option>
+                                <option value="Honda">Honda</option>
+                                <option value="Suzuki">Suzuki</option>
+                                <option value="Wuling">Wuling</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Jenis Kendaraan :</label>
+                            <select class="form-select" id="jenis-select" onchange="onJenisChange()" required>
+                                <option value="">-- Pilih Jenis Kendaraan --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Tipe Kendaraan :</label>
+                            <select class="form-select" id="tipe-select" onchange="onTipeChange()" required>
+                                <option value="">-- Pilih Tipe Kendaraan --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="tipe-manual-container" style="display: none;">
+                            <label class="form-label" style="color: var(--primary);">• Input Tipe Kendaraan Manual (Lainnya) :</label>
+                            <input type="text" class="form-control" id="tipe-manual-input" placeholder="Tuliskan nama tipe/model kendaraan di sini...">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Tahun Kendaraan :</label>
+                            <select class="form-select" id="tahun-select" required>
+                                <option value="">-- Pilih Tahun Kendaraan --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Kapasitas Kendaraan :</label>
+                            <select class="form-select" id="kapasitas-select" required>
+                                <option value="">-- Pilih Kapasitas Penumpang --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• CC Kendaraan :</label>
+                            <select class="form-select" id="cc-select" required>
+                                <option value="">-- Pilih Kapasitas Mesin (CC) --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• No Kendaraan (Isi Manual) :</label>
+                            <input type="text" class="form-control" id="nopol-input" placeholder="Contoh: B 1234 ABC" required>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                          <label for="gps-url" style="display: block; font-weight: bold; margin-bottom: 5px; color: #555;">• Link GPS (Isi Manual):</label>
+                          <input type="url" id="gps-url" placeholder="Tempel tautan https://..." required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+                        </div>
+
+                        <div style="margin-bottom: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+                            <label class="form-label" style="font-size: 14px; font-weight: 700;">
+                                • Upload Foto Kendaraan untuk Konsumen (Maks. 5 Foto):
+                            </label>
+                            <div class="photo-upload-grid">
+                                <div class="photo-upload-item">
+                                    <span style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px;">Foto 1</span>
+                                    <input type="file" accept="image/*" id="foto-1" onchange="processAndCompressImage(this, 'prev-1', 0)" style="font-size: 10px; width: 100%;">
+                                    <img id="prev-1" class="photo-preview" alt="Depan">
+                                </div>
+                                <div class="photo-upload-item">
+                                    <span style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px;">Foto 2</span>
+                                    <input type="file" accept="image/*" id="foto-2" onchange="processAndCompressImage(this, 'prev-2', 1)" style="font-size: 10px; width: 100%;">
+                                    <img id="prev-2" class="photo-preview" alt="Samping Kiri">
+                                </div>
+                                <div class="photo-upload-item">
+                                    <span style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px;">Foto 3</span>
+                                    <input type="file" accept="image/*" id="foto-3" onchange="processAndCompressImage(this, 'prev-3', 2)" style="font-size: 10px; width: 100%;">
+                                    <img id="prev-3" class="photo-preview" alt="Belakang">
+                                </div>
+                                <div class="photo-upload-item">
+                                    <span style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px;">Foto 4</span>
+                                    <input type="file" accept="image/*" id="foto-4" onchange="processAndCompressImage(this, 'prev-4', 3)" style="font-size: 10px; width: 100%;">
+                                    <img id="prev-4" class="photo-preview" alt="Dalam">
+                                </div>
+                                <div class="photo-upload-item">
+                                    <span style="font-size: 11px; font-weight: 700; display: block; margin-bottom: 4px;">Foto 5</span>
+                                    <input type="file" accept="image/*" id="foto-5" onchange="processAndCompressImage(this, 'prev-5', 4)" style="font-size: 10px; width: 100%;">
+                                    <img id="prev-5" class="photo-preview" alt="Bebas">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" style="width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                          Simpan Kendaraan
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-box" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 12px;">No</th>
+                                <th style="padding: 12px;">Foto</th>
+                                <th style="padding: 12px;">Kendaraan</th>
+                                <th style="padding: 12px;">No. Polisi</th>
+                                <th style="padding: 12px;">Kapasitas</th>
+                                <th style="padding: 12px;">Status GPS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-kendaraan-body">
+                            <!-- Populated Dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. DAFTAR HARGA SEWA KENDARAAN -->
+            <div id="view-daftar-harga" class="view-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h1 class="page-title" style="margin: 0;">Daftar Harga Sewa Kendaraan</h1>
+                    <button class="btn-primary" onclick="toggleFormHarga()"><i class="fas fa-plus"></i> Atur Harga Sewa</button>
+                </div>
+
+                <div id="formHargaBox" class="card-box" style="display: none; border-left: 4px solid var(--primary);">
+                    <h3 style="font-size: 16px; margin-bottom: 16px;">Atur Harga Sewa Kendaraan</h3>
+                    <form onsubmit="handleSimpanHarga(event)">
+                        
+                        <div class="form-group">
+                            <label class="form-label">• Pilih Kendaraan :</label>
+                            <select class="form-select" id="select-kendaraan-harga" required>
+                                <option value="">-- Pilih Kendaraan dari Master Data --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Harga Sewa (Rp / hari) :</label>
+                            <input type="number" class="form-control" id="harga-sewa-input" placeholder="Contoh: 350000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Estimasi Denda (Rp / hari) :</label>
+                            <input type="number" class="form-control" id="denda-hari-input" placeholder="Contoh: 100000" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">• Estimasi Denda (Rp / jam - Opsional) :</label>
+                            <input type="number" class="form-control" id="denda-jam-input" placeholder="Contoh: 20000">
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; background: #28a745;">
+                            Simpan & Tampilkan Harga
+                        </button>
+                    </form>
+                </div>
+
+                <div class="price-card-grid" id="price-card-container">
+                    <!-- Populated Dynamically -->
+                </div>
+            </div>
+
+            <!-- 4. HALAMAN KALENDER BOOKING ONLINE BESAR -->
+            <div id="view-kalender-booking" class="view-panel">
+                <h1 class="page-title">Kalender Operasional Sistem</h1>
+
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button class="calendar-nav-btn" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                        <div class="calendar-title" id="calendarMonthYear">September 2026</div>
+                        <button class="calendar-nav-btn" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+
+                    <div class="calendar-days-grid">
+                        <div class="day-header">Min</div>
+                        <div class="day-header">Sen</div>
+                        <div class="day-header">Sel</div>
+                        <div class="day-header">Rab</div>
+                        <div class="day-header">Kam</div>
+                        <div class="day-header">Jum</div>
+                        <div class="day-header">Sab</div>
+                    </div>
+
+                    <div class="calendar-days-grid" id="calendarDaysBody">
+                        <!-- Render Grid Tanggal Otomatis oleh JS -->
+                    </div>
+
+                    <div class="calendar-legend">
+                        <div class="legend-item">
+                            <div style="width: 14px; height: 14px; background: #1e3a8a; border-radius: 4px;"></div>
+                            <span>Hari Ini</span>
+                        </div>
+                        <div class="legend-item">
+                            <div style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%;"></div>
+                            <span>Ada Booking Konsumen (Titik Merah)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL LAINNYA -->
+            <div id="view-data-pemesan" class="view-panel">
+                <h1 class="page-title">Data Pemesan / Pelanggan</h1>
+                <div class="card-box"><p style="color: var(--text-muted);">Daftar pemesan terdaftar akan tampil di sini.</p></div>
+            </div>
+
+            <div id="view-data-jenis-bayar" class="view-panel">
+                <h1 class="page-title">Data Jenis Bayar</h1>
+                <div class="card-box"><p style="color: var(--text-muted);">Metode pembayaran terkonfigurasi.</p></div>
+            </div>
+
+            <!-- VIEW DATA PERJALANAN -->
+            <div id="view-data-perjalanan" class="view-panel">
+                <h1 class="page-title">Data Perjalanan Sewa Kendaraan</h1>
+
+                <div class="card-box" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 12px;">Nama Konsumen</th>
+                                <th style="padding: 12px;">No Tlp</th>
+                                <th style="padding: 12px;">Data Kendaraan</th>
+                                <th style="padding: 12px;">No Kendaraan</th>
+                                <th style="padding: 12px;">Tgl Sewa</th>
+                                <th style="padding: 12px;">Akhir Sewa</th>
+                                <th style="padding: 12px;">Status Sewa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-perjalanan-body">
+                            <!-- Render Otomatis dari JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW LACAK KENDARAAN -->
+            <div id="view-lacak-kendaraan" class="view-panel">
+                <h1 class="page-title">Lacak Kendaraan</h1>
+                
+                <div class="card-box">
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <i class="fas fa-search" style="position: absolute; left: 14px; color: var(--text-muted);"></i>
+                        <input type="text" id="input-cari-lacak" class="form-control" placeholder="Lacak Kendaraan dengan plat nomor..." style="padding-left: 40px;">
+                    </div>
+                </div>
+
+                <div id="mapTrackerBox" class="card-box" style="display: none; padding: 0; overflow: hidden; border: 2px solid var(--primary); margin-top: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);">
+                    <div style="background: #1e3a8a; color: white; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-satellite-dish" style="color: #60a5fa; font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 15px; margin: 0; font-weight: 700;">
+                                    Lacak Realtime: <span id="mapVehiclePlate" style="color: #fde047; font-weight: 800; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;"></span>
+                                </h3>
+                                <div id="mapVehicleDetail" style="color: #cbd5e1; font-size: 12px; margin-top: 2px;"></div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="closeMapTracker()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Tutup Google Maps (X)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="gmap-responsive-container">
+                        <iframe id="gpsIframe" src="" style="width: 100%; height: 100%; border: 0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+
+                    <div style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <span style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-info-circle"></i> Peta menyesuaikan tampilan layar Ponsel, Tablet, & PC/Laptop.</span>
+                        <a id="directGpsBtn" href="#" target="_blank" style="font-size: 12px; color: var(--primary); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            Buka Tautan Asli GPS <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-data-pesanan" class="view-panel">
+                <h1 class="page-title">Data Pesanan</h1>
+                <div class="card-box"><p style="color: var(--text-muted);">Seluruh transaksi masuk.</p></div>
+            </div>
+
+            <div id="view-manajemen-akun" class="view-panel">
+                <h1 class="page-title">Manajemen Akun</h1>
+                <div class="card-box"><p style="color: var(--text-muted);">Pengaturan akses admin & operator.</p></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL POPUP CUSTOM MODERN -->
+    <div id="customModalOverlay" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <div class="custom-modal-icon" id="modalIconContainer" style="background: #fee2e2; color: #ef4444;">
+                <i id="modalIcon" class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3 class="custom-modal-title" id="modalTitle">Konfirmasi Keluar</h3>
+            <p class="custom-modal-message" id="modalMessage">Apakah Anda yakin ingin keluar dari sistem admin?</p>
+            <div class="custom-modal-actions">
+                <button class="btn-modal-cancel" id="modalBtnCancel" onclick="closeCustomModal()">Batal</button>
+                <button class="btn-modal-confirm" id="modalBtnConfirm">Ya, Keluar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & APPLICATION SCRIPT -->
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { 
+            collection, 
+            addDoc, 
+            setDoc,
+            doc,
+            onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+              // ==========================================
+        // PROTEKSI OTENTIKASI & AUTO-LOGOUT 24 JAM
+        // ==========================================
+        const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 Jam dalam milidetik
+
+        function checkSessionActivity() {
+            const lastActive = localStorage.getItem("lastActiveTime");
+            const now = new Date().getTime();
+            if (lastActive && (now - lastActive > SESSION_TIMEOUT)) {
+                signOut(auth).then(() => {
+                    localStorage.removeItem("lastActiveTime");
+                    window.location.href = "index.html";
+                });
+            } else {
+                localStorage.setItem("lastActiveTime", now);
+            }
+        }
+
+        window.addEventListener('click', () => localStorage.setItem("lastActiveTime", new Date().getTime()));
+        window.addEventListener('keypress', () => localStorage.setItem("lastActiveTime", new Date().getTime()));
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+            } else {
+                checkSessionActivity();
+            }
+        });
+        
+        // DATABASE REALTIME LOCAL HOLDER
+        let vehiclesList = [];
+        let priceList = [];
+        let bookedDatesList = [];
+        let ordersList = [];
+
+        let currentCalendarDate = new Date();
+        let currentUploadedPhotos = ["", "", "", "", ""];
+
+        // CHART INSTANCES (GLOBAL)
+        let omzetChartInstance = null;
+        let statusChartInstance = null;
+
+        // --- SISTEM POPUP MODAL CUSTOM MODERN ---
+        let onConfirmCallback = null;
+
+        window.showCustomModal = function({ title, message, icon, iconBg, iconColor, confirmText, confirmBg, onConfirm }) {
+            document.getElementById('modalTitle').innerText = title || 'Konfirmasi';
+            document.getElementById('modalMessage').innerText = message || '';
+            
+            const iconElem = document.getElementById('modalIcon');
+            iconElem.className = icon || 'fas fa-question-circle';
+            
+            const iconContainer = document.getElementById('modalIconContainer');
+            iconContainer.style.background = iconBg || '#eff6ff';
+            iconContainer.style.color = iconColor || '#2563eb';
+
+            const confirmBtn = document.getElementById('modalBtnConfirm');
+            confirmBtn.innerText = confirmText || 'Ya';
+            confirmBtn.style.background = confirmBg || 'var(--primary)';
+
+            onConfirmCallback = onConfirm;
+
+            document.getElementById('customModalOverlay').classList.add('active');
+        };
+
+        window.closeCustomModal = function() {
+            document.getElementById('customModalOverlay').classList.remove('active');
+            onConfirmCallback = null;
+        };
+
+        document.getElementById('modalBtnConfirm')?.addEventListener('click', () => {
+            if (typeof onConfirmCallback === 'function') {
+                onConfirmCallback();
+            }
+            closeCustomModal();
+        });
+
+        // 1. REALTIME LISTENER - KENDARAAN (FIRESTORE)
+        onSnapshot(collection(db, "vehicles"), (snapshot) => {
+            vehiclesList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderVehicles();
+            populateHargaVehicleSelect();
+            renderPriceCards();
+            updateStatusKendaraanChart();
+        });
+
+        // 2. REALTIME LISTENER - HARGA SEWA (FIRESTORE)
+        onSnapshot(collection(db, "prices"), (snapshot) => {
+            priceList = snapshot.docs.map(doc => doc.data());
+            renderPriceCards();
+        });
+
+        // 3. REALTIME LISTENER - BOOKING UNTUK KALENDER (FIRESTORE)
+        onSnapshot(collection(db, "bookings"), (snapshot) => {
+            bookedDatesList = snapshot.docs.map(doc => doc.data().tanggal);
+            renderCalendar();
+        });
+
+        // 4. REALTIME LISTENER - PESANAN / ORDERS (FIRESTORE)
+        onSnapshot(collection(db, "orders"), (snapshot) => {
+            ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateDashboardStatsAndCharts();
+        });
+
+        // --- GLOBAL WINDOW FUNCTIONS UNTUK HANDLER INLINE HTML ---
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        };
+
+        window.switchTab = function(viewId, element) {
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+            const activePanel = document.getElementById('view-' + viewId);
+            if (activePanel) activePanel.classList.add('active');
+
+            if (window.innerWidth <= 768) window.toggleSidebar();
+        };
+
+        // HANDLE LOGOUT MODERN
+        window.handleLogout = function() {
+            showCustomModal({
+                title: 'Konfirmasi Keluar',
+                message: 'Apakah Anda yakin ingin keluar dari sistem admin?',
+                icon: 'fas fa-sign-out-alt',
+                iconBg: '#fee2e2',
+                iconColor: '#ef4444',
+                confirmText: 'Ya, Keluar',
+                confirmBg: '#ef4444',
+                onConfirm: async () => {
+                    try {
+                        await signOut(auth);
+                        window.location.href = "index.html";
+                    } catch (err) {
+                        console.error("Gagal logout:", err);
+                    }
+                }
+            });
+        };
+
+        window.toggleFormKendaraan = function() {
+            const formBox = document.getElementById('formKendaraanBox');
+            formBox.style.display = formBox.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.toggleFormHarga = function() {
+            const formBox = document.getElementById('formHargaBox');
+            formBox.style.display = formBox.style.display === 'none' ? 'block' : 'none';
+        };
+
+        const carCatalog = {
+            Toyota: {
+                "MPV (Multi-Purpose Vehicle)": ["Calya", "Avanza", "Veloz", "Kijang Innova Zenix", "Alphard"],
+                "SUV (Sport Utility Vehicle)": ["Raize", "Rush", "Fortuner", "Land Cruiser"],
+                "Hatchback / Sedan": ["Agya", "Yaris", "Corolla Altis", "Camry"]
+            },
+            Daihatsu: {
+                "LCGC (Low Cost Green Car)": ["Sigra"],
+                "MPV": ["All New Xenia", "Luxio"],
+                "SUV": ["New Rocky", "New Terios"]
+            }
+        };
+
+        const staticSpecs = {
+            tahun: ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+            kapasitas: ["2 Penumpang", "4 Penumpang", "5 Penumpang", "7 Penumpang", "8 Penumpang", "10+ Penumpang"],
+            cc: ["1000 CC", "1200 CC", "1300 CC", "1500 CC", "1800 CC", "2000 CC", "2400 CC", "Electric / Pure EV"]
+        };
+
+        function populateStaticDropdowns() {
+            const tahunSelect = document.getElementById('tahun-select');
+            const kapasitasSelect = document.getElementById('kapasitas-select');
+            const ccSelect = document.getElementById('cc-select');
+
+            tahunSelect.innerHTML = '<option value="">-- Pilih Tahun Kendaraan --</option>';
+            staticSpecs.tahun.forEach(item => tahunSelect.innerHTML += `<option value="${item}">${item}</option>`);
+
+            kapasitasSelect.innerHTML = '<option value="">-- Pilih Kapasitas Penumpang --</option>';
+            staticSpecs.kapasitas.forEach(item => kapasitasSelect.innerHTML += `<option value="${item}">${item}</option>`);
+
+            ccSelect.innerHTML = '<option value="">-- Pilih Kapasitas Mesin (CC) --</option>';
+            staticSpecs.cc.forEach(item => ccSelect.innerHTML += `<option value="${item}">${item}</option>`);
+        }
+
+        window.onMerekChange = function() {
+            const merek = document.getElementById('merek-select').value;
+            const jenisSelect = document.getElementById('jenis-select');
+            const tipeSelect = document.getElementById('tipe-select');
+            const manualContainer = document.getElementById('tipe-manual-container');
+
+            jenisSelect.innerHTML = '<option value="">-- Pilih Jenis Kendaraan --</option>';
+            tipeSelect.innerHTML = '<option value="">-- Pilih Tipe Kendaraan --</option>';
+            manualContainer.style.display = 'none';
+
+            if (merek && carCatalog[merek]) {
+                const jenisList = Object.keys(carCatalog[merek]);
+                jenisList.forEach(jenis => {
+                    jenisSelect.innerHTML += `<option value="${jenis}">${jenis}</option>`;
+                });
+            }
+        };
+
+        window.onJenisChange = function() {
+            const merek = document.getElementById('merek-select').value;
+            const jenis = document.getElementById('jenis-select').value;
+            const tipeSelect = document.getElementById('tipe-select');
+            const manualContainer = document.getElementById('tipe-manual-container');
+
+            tipeSelect.innerHTML = '<option value="">-- Pilih Tipe Kendaraan --</option>';
+            manualContainer.style.display = 'none';
+
+            if (merek && jenis && carCatalog[merek] && carCatalog[merek][jenis]) {
+                const tipeList = carCatalog[merek][jenis];
+                tipeList.forEach(tipe => {
+                    tipeSelect.innerHTML += `<option value="${tipe}">${tipe}</option>`;
+                });
+                tipeSelect.innerHTML += `<option value="MANUAL">+ Tambah Manual (Lainnya)</option>`;
+            }
+        };
+
+        window.onTipeChange = function() {
+            const tipeSelect = document.getElementById('tipe-select');
+            const manualContainer = document.getElementById('tipe-manual-container');
+            const manualInput = document.getElementById('tipe-manual-input');
+
+            if (tipeSelect.value === 'MANUAL') {
+                manualContainer.style.display = 'block';
+                manualInput.setAttribute('required', 'required');
+            } else {
+                manualContainer.style.display = 'none';
+                manualInput.removeAttribute('required');
+            }
+        };
+
+        window.processAndCompressImage = function(fileInput, previewImgId, photoIndex) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                showCustomModal({
+                    title: 'Ukuran File Terlalu Besar',
+                    message: 'Maksimal ukuran gambar yang diizinkan adalah 2MB.',
+                    icon: 'fas fa-exclamation-triangle',
+                    iconBg: '#fffbe3',
+                    iconColor: '#f59e0b',
+                    confirmText: 'Mengerti',
+                    confirmBg: '#f59e0b',
+                    onConfirm: () => {}
+                });
+                fileInput.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 800;
+                    
+                    if (width > height) {
+                        if (width > maxDim) { height *= maxDim / width; width = maxDim; }
+                    } else {
+                        if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    currentUploadedPhotos[photoIndex] = compressedBase64;
+
+                    const prevElement = document.getElementById(previewImgId);
+                    prevElement.src = compressedBase64;
+                    prevElement.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // SIMPAN KENDARAAN KE FIRESTORE
+        window.handleTambahKendaraan = async function(e) {
+            e.preventDefault();
+
+            const merek = document.getElementById('merek-select').value;
+            const jenis = document.getElementById('jenis-select').value;
+            let tipe = document.getElementById('tipe-select').value;
+            if (tipe === 'MANUAL') {
+                tipe = document.getElementById('tipe-manual-input').value;
+            }
+
+            const tahun = document.getElementById('tahun-select').value;
+            const kapasitas = document.getElementById('kapasitas-select').value;
+            const cc = document.getElementById('cc-select').value;
+            const noPolisi = document.getElementById('nopol-input').value;
+            const linkGps = document.getElementById('gps-url').value;
+
+            const validPhotos = currentUploadedPhotos.filter(img => img !== "");
+
+            try {
+                await addDoc(collection(db, "vehicles"), {
+                    merek,
+                    jenis,
+                    tipe,
+                    tahun,
+                    kapasitas,
+                    cc,
+                    noPolisi,
+                    linkGps,
+                    photos: validPhotos.length > 0 ? validPhotos : ["https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&auto=format&fit=crop&q=60"]
+                });
+
+                showCustomModal({
+                    title: 'Berhasil',
+                    message: 'Kendaraan berhasil disimpan permanen di sistem.',
+                    icon: 'fas fa-check-circle',
+                    iconBg: '#ecfdf5',
+                    iconColor: '#10b981',
+                    confirmText: 'Selesai',
+                    confirmBg: '#10b981',
+                    onConfirm: () => {}
+                });
+
+                document.getElementById('formTambahKendaraan').reset();
+                currentUploadedPhotos = ["", "", "", "", ""];
+                document.querySelectorAll('.photo-preview').forEach(img => img.style.display = 'none');
+                window.toggleFormKendaraan();
+            } catch (err) {
+                showCustomModal({
+                    title: 'Gagal Menyimpan',
+                    message: err.message,
+                    icon: 'fas fa-times-circle',
+                    iconBg: '#fee2e2',
+                    iconColor: '#ef4444',
+                    confirmText: 'Tutup',
+                    confirmBg: '#ef4444',
+                    onConfirm: () => {}
+                });
+            }
+        };
+
+        // SIMPAN HARGA SEWA KE FIRESTORE
+        window.handleSimpanHarga = async function(e) {
+            e.preventDefault();
+
+            const vehicleId = document.getElementById('select-kendaraan-harga').value;
+            const hargaSewa = parseInt(document.getElementById('harga-sewa-input').value);
+            const dendaHari = parseInt(document.getElementById('denda-hari-input').value);
+            const dendaJam = document.getElementById('denda-jam-input').value ? parseInt(document.getElementById('denda-jam-input').value) : 0;
+
+            try {
+                await setDoc(doc(db, "prices", String(vehicleId)), {
+                    vehicleId: String(vehicleId),
+                    hargaSewa,
+                    dendaHari,
+                    dendaJam
+                });
+
+                showCustomModal({
+                    title: 'Berhasil',
+                    message: 'Harga sewa kendaraan berhasil diperbarui.',
+                    icon: 'fas fa-check-circle',
+                    iconBg: '#ecfdf5',
+                    iconColor: '#10b981',
+                    confirmText: 'Selesai',
+                    confirmBg: '#10b981',
+                    onConfirm: () => {}
+                });
+
+                window.toggleFormHarga();
+            } catch (err) {
+                showCustomModal({
+                    title: 'Gagal Menyimpan',
+                    message: err.message,
+                    icon: 'fas fa-times-circle',
+                    iconBg: '#fee2e2',
+                    iconColor: '#ef4444',
+                    confirmText: 'Tutup',
+                    confirmBg: '#ef4444',
+                    onConfirm: () => {}
+                });
+            }
+        };
+
+        function renderVehicles() {
+            const tbody = document.getElementById('table-kendaraan-body');
+            document.getElementById('stat-total-armada').innerText = vehiclesList.length + " Unit";
+            tbody.innerHTML = "";
+
+            vehiclesList.forEach((v, index) => {
+                const thumb = v.photos ? v.photos[0] : "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&auto=format&fit=crop&q=60";
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;">${index + 1}</td>
+                        <td style="padding: 12px;">
+                            <img src="${thumb}" style="width: 50px; height: 35px; object-fit: cover; border-radius: 4px;">
+                        </td>
+                        <td style="padding: 12px;">
+                            <b>${v.merek} ${v.tipe}</b><br>
+                            <small style="color:var(--text-muted)">${v.jenis} • ${v.tahun} • ${v.cc}</small>
+                        </td>
+                        <td style="padding: 12px;">${v.noPolisi}</td>
+                        <td style="padding: 12px;">${v.kapasitas}</td>
+                        <td style="padding: 12px;">
+                            <a href="${v.linkGps}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight:600;">
+                                <i class="fas fa-location-arrow"></i> Lacak GPS
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function populateHargaVehicleSelect() {
+            const select = document.getElementById('select-kendaraan-harga');
+            select.innerHTML = '<option value="">-- Pilih Kendaraan dari Master Data --</option>';
+
+            vehiclesList.forEach(v => {
+                select.innerHTML += `
+                    <option value="${v.id}">
+                        [${v.merek}] ${v.tipe} - ${v.jenis} (${v.tahun}, ${v.cc}) - Plat: ${v.noPolisi}
+                    </option>
+                `;
+            });
+        }
+
+        function renderPriceCards() {
+            const container = document.getElementById('price-card-container');
+            container.innerHTML = "";
+
+            if (priceList.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); grid-column: 1/-1;">Belum ada harga sewa yang diatur.</p>`;
+                return;
+            }
+
+            priceList.forEach(p => {
+                const vehicle = vehiclesList.find(v => String(v.id) === String(p.vehicleId));
+                if (!vehicle) return;
+
+                let galleryHtml = "";
+                if (vehicle.photos) {
+                    vehicle.photos.forEach((photo, idx) => {
+                        galleryHtml += `<img src="${photo}" title="Foto ${idx+1}" alt="Foto Kendaraan">`;
+                    });
+                }
+
+                container.innerHTML += `
+                    <div class="price-card">
+                        <div class="price-card-gallery">
+                            ${galleryHtml}
+                        </div>
+                        <div class="price-card-body">
+                            <span class="price-badge">${vehicle.merek} ${vehicle.tipe}</span>
+                            <h3 style="font-size: 16px; margin-bottom: 4px;">${vehicle.merek} ${vehicle.tipe} (${vehicle.tahun})</h3>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                                ${vehicle.jenis} • ${vehicle.cc} • <b>Plat: ${vehicle.noPolisi}</b>
+                            </p>
+                            
+                            <div style="border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 10px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                    <span style="font-size:13px; color:var(--text-muted);">Harga Sewa:</span>
+                                    <span style="font-size:15px; font-weight:700; color:var(--primary);">Rp ${p.hargaSewa.toLocaleString('id-ID')} / hari</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                                    <span style="font-size:12px; color:var(--text-muted);">Denda / Hari:</span>
+                                    <span style="font-size:13px; font-weight:600; color:var(--danger);">Rp ${p.dendaHari.toLocaleString('id-ID')} / hari</span>
+                                </div>
+                                ${p.dendaJam ? `
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span style="font-size:12px; color:var(--text-muted);">Denda / Jam (Opsional):</span>
+                                    <span style="font-size:13px; font-weight:600; color:var(--warning);">Rp ${p.dendaJam.toLocaleString('id-ID')} / jam</span>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderCalendar() {
+            const daysContainer = document.getElementById('calendarDaysBody');
+            const monthYearTitle = document.getElementById('calendarMonthYear');
+            
+            const monthNames = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const today = new Date();
+
+            monthYearTitle.innerText = `${monthNames[month]} ${year}`;
+            daysContainer.innerHTML = "";
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+
+            for (let x = 0; x < firstDayIndex; x++) {
+                daysContainer.innerHTML += `<div class="day-cell empty"></div>`;
+            }
+
+            for (let day = 1; day <= lastDate; day++) {
+                const formattedDay = day < 10 ? '0' + day : day;
+                const formattedMonth = (month + 1) < 10 ? '0' + (month + 1) : (month + 1);
+                const dateString = `${year}-${formattedMonth}-${formattedDay}`;
+
+                const isToday = (
+                    day === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear()
+                );
+
+                const isBooked = bookedDatesList.includes(dateString);
+
+                daysContainer.innerHTML += `
+                    <div class="day-cell ${isToday ? 'today' : ''}">
+                        ${day}
+                        ${isBooked ? '<div class="red-dot" title="Ada Booking Kendaraan"></div>' : ''}
+                    </div>
+                `;
+            }
+        }
+
+        window.prevMonth = function() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            renderCalendar();
+        };
+
+        window.nextMonth = function() {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            renderCalendar();
+        };
+
+        // FUNGSI UPDATE GRAFIK & STATISTIK DARI FIRESTORE REALTIME
+        function updateDashboardStatsAndCharts() {
+            const activeUsers = new Set(ordersList.map(o => o.namaKonsumen || o.userId)).size;
+            document.getElementById('stat-pemesan-aktif').innerText = activeUsers + " Orang";
+            document.getElementById('stat-pesanan-bulan-ini').innerText = ordersList.length + " Transaksi";
+
+            let totalOmzet = 0;
+            const dailyOmzet = [0, 0, 0, 0, 0, 0, 0];
+
+            ordersList.forEach(order => {
+                const nominal = Number(order.totalHarga || order.nominal || order.hargaSewa || 0);
+                totalOmzet += nominal;
+
+                if (order.hariIndex !== undefined && order.hariIndex >= 0 && order.hariIndex < 7) {
+                    dailyOmzet[order.hariIndex] += nominal;
+                } else if (order.createdAt) {
+                    const d = order.createdAt.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
+                    let dayIdx = d.getDay() - 1;
+                    if (dayIdx < 0) dayIdx = 6;
+                    dailyOmzet[dayIdx] += nominal;
+                }
+            });
+
+            document.getElementById('stat-omzet-sewa').innerText = "Rp " + totalOmzet.toLocaleString('id-ID');
+
+            if (omzetChartInstance) {
+                omzetChartInstance.data.datasets[0].data = dailyOmzet;
+                omzetChartInstance.update();
+            }
+
+            updateStatusKendaraanChart();
+        }
+
+        function updateStatusKendaraanChart() {
+            if (!statusChartInstance) return;
+
+            const total = vehiclesList.length;
+            const disewakan = ordersList.filter(o => o.status === 'Disewakan' || o.status === 'Aktif').length;
+            const tersedia = Math.max(0, total - disewakan);
+
+            statusChartInstance.data.datasets[0].data = [tersedia, disewakan];
+            statusChartInstance.update();
+        }
+
+        // LACAK KENDARAAN GPS SEARCH HANDLER
+        document.getElementById('input-cari-lacak')?.addEventListener('input', function(e) {
+            const keyword = e.target.value.trim().toLowerCase().replace(/\s+/g, '');
+            const mapBox = document.getElementById('mapTrackerBox');
+            
+            if (!keyword) {
+                mapBox.style.display = 'none';
+                return;
+            }
+
+            const found = vehiclesList.find(v => 
+                v.noPolisi && v.noPolisi.toLowerCase().replace(/\s+/g, '').includes(keyword)
+            );
+
+            if (found) {
+                document.getElementById('mapVehiclePlate').innerText = found.noPolisi;
+                document.getElementById('mapVehicleDetail').innerText = `${found.merek} ${found.tipe} (${found.tahun})`;
+                document.getElementById('gpsIframe').src = found.linkGps;
+                document.getElementById('directGpsBtn').href = found.linkGps;
+                mapBox.style.display = 'block';
+            } else {
+                mapBox.style.display = 'none';
+            }
+        });
+
+        window.closeMapTracker = function() {
+            document.getElementById('mapTrackerBox').style.display = 'none';
+            document.getElementById('input-cari-lacak').value = '';
+        };
+
+        // INITIALIZATION ON DOM LOADED
+        window.addEventListener('DOMContentLoaded', () => {
+            populateStaticDropdowns();
+            renderCalendar();
+
+            const ctxOmzet = document.getElementById('omzetChart').getContext('2d');
+            omzetChartInstance = new Chart(ctxOmzet, {
+                type: 'line',
+                data: {
+                    labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+                    datasets: [{
+                        label: 'Omzet Transaksi (Rp)',
+                        data: [0, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const ctxStatus = document.getElementById('statusKendaraanChart').getContext('2d');
+            statusChartInstance = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tersedia', 'Disewakan'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#10b981', '#2563eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom'
+                        } 
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

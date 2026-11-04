@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Rent Car - Mobile App</title>
+    <!-- Google Font 'Poppins' -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 CSS & JS (Pop-up Modern) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        /* Pengaturan Dasar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+        }
+
+        /* Container Utama */
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+        }
+
+        /* Header Aplikasi & Logo */
+        .form-header {
+            text-align: center;
+            padding: 30px 20px 15px;
+        }
+
+        .app-logo {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+            object-fit: contain;
+        }
+
+        .form-header h1 {
+            color: #1e3c72;
+            font-size: 26px;
+            font-weight: 600;
+        }
+
+        .form-header p {
+            color: #777;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Tombol Pindah (Login / Daftar) */
+        .toggle-box {
+            display: flex;
+            margin: 0 30px 25px;
+            background: #f1f5f9;
+            border-radius: 30px;
+            position: relative;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            font-size: 15px;
+            color: #666;
+            transition: 0.3s;
+            z-index: 1;
+        }
+
+        #btn-active {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            background: #1e3c72;
+            border-radius: 30px;
+            transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .toggle-btn.active {
+            color: #fff;
+        }
+
+        /* Wadah Form Animasi Geser */
+        .forms-wrapper {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            overflow: hidden;
+            transition: height 0.4s ease;
+        }
+
+        .form {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            padding: 0 30px 30px;
+            transition: 0.4s ease-in-out;
+        }
+
+        /* Posisi Awal Form */
+        #login-form { left: 0; }
+        #register-form { left: 100%; }
+
+        /* Gaya Kolom Input */
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid #e1e5eb;
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+            transition: 0.3s;
+            background: #fafafa;
+        }
+
+        .input-group input:focus {
+            border-color: #1e3c72;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(30, 60, 114, 0.1);
+        }
+
+        /* Lupa Password */
+        .forgot-password {
+            display: block;
+            text-align: right;
+            font-size: 12px;
+            color: #1e3c72;
+            text-decoration: none;
+            margin-top: -8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        /* Tombol Eksekusi */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1e3c72;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .submit-btn:hover {
+            background: #2a5298;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-header">
+            <img src="logo.png" alt="Logo My Rent Car" class="app-logo">
+            <h1>My Rent Car</h1>
+            <p>Silakan masuk atau buat akun baru</p>
+        </div>
+
+        <div class="toggle-box">
+            <div id="btn-active"></div>
+            <button type="button" class="toggle-btn active" onclick="showLogin()">Masuk</button>
+            <button type="button" class="toggle-btn" onclick="showRegister()">Daftar</button>
+        </div>
+
+        <div class="forms-wrapper" id="forms-wrapper">
+            
+            <!-- FORM LOGIN -->
+            <form id="login-form" class="form" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="contoh@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Masukkan password" required>
+                </div>
+                <a href="#" class="forgot-password" onclick="handleForgotPassword(event)">Lupa Password?</a>
+                <button type="submit" class="submit-btn" id="btn-login-submit">Masuk ke Akun</button>
+            </form>
+
+            <!-- FORM DAFTAR -->
+            <form id="register-form" class="form" onsubmit="handleRegister(event)">
+                <div class="input-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="register-fullname" placeholder="Masukkan nama lengkap sesuai identitas" required>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="register-email" placeholder="contoh@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="register-password" placeholder="Buat password (minimal 8 karakter)" minlength="8" required>
+                </div>
+                <button type="submit" class="submit-btn" id="btn-register-submit">Daftar Sekarang</button>
+            </form>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            updateProfile,
+            sendPasswordResetEmail 
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc,
+            getDoc 
+        } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBnr_z6-k4YNaxp2sp7uAfe0V7MyIOzk1c",
+            authDomain: "rent-cars-apk.firebaseapp.com",
+            projectId: "rent-cars-apk",
+            storageBucket: "rent-cars-apk.appspot.com",
+            messagingSenderId: "56096686698",
+            appId: "1:56096686698:web:58a36f8083b6db0e214013"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const loginForm = document.getElementById("login-form");
+        const registerForm = document.getElementById("register-form");
+        const btnActive = document.getElementById("btn-active");
+        const toggleBtns = document.querySelectorAll(".toggle-btn");
+        const formsWrapper = document.getElementById("forms-wrapper");
+
+        window.showLogin = function() {
+            loginForm.style.left = "0";
+            registerForm.style.left = "100%";
+            btnActive.style.left = "0";
+            formsWrapper.style.height = "280px"; 
+            toggleBtns[0].classList.add("active");
+            toggleBtns[1].classList.remove("active");
+        };
+
+        window.showRegister = function() {
+            loginForm.style.left = "-100%";
+            registerForm.style.left = "0";
+            btnActive.style.left = "50%";
+            formsWrapper.style.height = "360px"; 
+            toggleBtns[0].classList.remove("active");
+            toggleBtns[1].classList.add("active");
+        };
+
+        // LOGIN HANDLER
+        window.handleLogin = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById("login-email").value.trim();
+            const password = document.getElementById("login-password").value;
+            const submitBtn = document.getElementById("btn-login-submit");
+
+            try {
+                submitBtn.innerText = "Memproses...";
+                submitBtn.disabled = true;
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
+                const userData = userDocSnap.exists() ? userDocSnap.data() : null;
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Login Berhasil!',
+                    text: `Selamat datang kembali, ${user.displayName || user.email}!`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                // Cek Alur Pengalihan
+                if (userData && userData.role === 'superadmin') {
+                    window.location.href = "dashboard-superadmin.html";
+                } else if (userData && userData.businessRegistered) {
+                    // Jika usaha rental sudah didaftarkan sebelumnya
+                    window.location.href = "dashboard-admin.html";
+                } else {
+                    // Klien baru yang belum mengisi pendaftaran usaha
+                    window.location.href = "formulir-pendaftaran-klien.html";
+                }
+            } catch (error) {
+                let errorMsg = "Gagal masuk ke akun.";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    errorMsg = "Email atau password yang Anda masukkan salah.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = "Format email tidak valid.";
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Masuk',
+                    text: errorMsg,
+                    confirmButtonColor: '#1e3c72'
+                });
+            } finally {
+                submitBtn.innerText = "Masuk ke Akun";
+                submitBtn.disabled = false;
+            }
+        };
+
+        // REGISTER HANDLER
+        window.handleRegister = async function(e) {
+            e.preventDefault();
+            const fullname = document.getElementById("register-fullname").value.trim();
+            const email = document.getElementById("register-email").value.trim();
+            const password = document.getElementById("register-password").value;
+            const submitBtn = document.getElementById("btn-register-submit");
+
+            try {
+                submitBtn.innerText = "Mendaftarkan...";
+                submitBtn.disabled = true;
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: fullname });
+
+                // Simpan data awal user ke Firestore
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    fullname: fullname,
+                    email: email,
+                    role: "admin",
+                    businessRegistered: false,
+                    createdAt: new Date().toISOString()
+                });
+
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Pendaftaran Berhasil!',
+                    text: 'Akun telah dibuat. Silakan masuk (login) untuk validasi.',
+                    confirmButtonColor: '#1e3c72'
+                });
+
+                // Kembalikan ke form Login di index.html untuk validasi
+                document.getElementById("register-form").reset();
+                showLogin();
+                document.getElementById("login-email").value = email;
+
+            } catch (error) {
+                let errorMsg = "Gagal membuat akun.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMsg = "Email sudah terdaftar. Silakan gunakan email lain atau langsung masuk.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMsg = "Password terlalu lemah. Minimal 8 karakter.";
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mendaftar',
+                    text: errorMsg,
+                    confirmButtonColor: '#1e3c72'
+                });
+            } finally {
+                submitBtn.innerText = "Daftar Sekarang";
+                submitBtn.disabled = false;
+            }
+        };
+
+        window.handleForgotPassword = async function(e) {
+            e.preventDefault();
+            const email = document.getElementById("login-email").value.trim();
+
+            if (!email) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Email Diperlukan',
+                    text: 'Silakan isi kolom Email terlebih dahulu untuk mereset password.',
+                    confirmButtonColor: '#1e3c72'
+                });
+                document.getElementById("login-email").focus();
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Email Terkirim',
+                    text: `Tautan instruksi reset password telah dikirim ke email: ${email}`,
+                    confirmButtonColor: '#1e3c72'
+                });
+            } catch (error) {
+                let errorMsg = "Gagal mengirim email reset password.";
+                if (error.code === 'auth/user-not-found') {
+                    errorMsg = "Email tidak terdaftar dalam sistem.";
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Kirim Email',
+                    text: errorMsg,
+                    confirmButtonColor: '#1e3c72'
+                });
+            }
+        };
+    </script>
+</body>
+</html>
