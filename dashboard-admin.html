@@ -1044,15 +1044,45 @@
                 </div>
             </div>
 
-            <!-- PANEL LAINNYA -->
+            <!-- DATA PEMESAN TER-SYNC -->
             <div id="view-data-pemesan" class="view-panel">
                 <h1 class="page-title">Data Pemesan / Pelanggan</h1>
-                <div class="card-box"><p style="color: var(--text-muted);">Daftar pemesan terdaftar akan tampil di sini.</p></div>
+                <div class="card-box" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 12px;">No</th>
+                                <th style="padding: 12px;">Nama Konsumen</th>
+                                <th style="padding: 12px;">No. WhatsApp / HP</th>
+                                <th style="padding: 12px;">Total Pesanan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-pemesan-body">
+                            <!-- Populated Dynamically -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
+            <!-- DATA JENIS BAYAR TER-SYNC -->
             <div id="view-data-jenis-bayar" class="view-panel">
-                <h1 class="page-title">Data Jenis Bayar</h1>
-                <div class="card-box"><p style="color: var(--text-muted);">Metode pembayaran terkonfigurasi.</p></div>
+                <h1 class="page-title">Data Jenis Bayar & Transaksi</h1>
+                <div class="card-box" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 12px;">No</th>
+                                <th style="padding: 12px;">Nama Konsumen</th>
+                                <th style="padding: 12px;">Kendaraan</th>
+                                <th style="padding: 12px;">Total Pembayaran</th>
+                                <th style="padding: 12px;">Status Bayar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-jenis-bayar-body">
+                            <!-- Populated Dynamically -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- VIEW DATA PERJALANAN -->
@@ -1122,9 +1152,26 @@
                 </div>
             </div>
 
+            <!-- DATA PESANAN / ORDERS -->
             <div id="view-data-pesanan" class="view-panel">
-                <h1 class="page-title">Data Pesanan</h1>
-                <div class="card-box"><p style="color: var(--text-muted);">Seluruh transaksi masuk.</p></div>
+                <h1 class="page-title">Data Pesanan Konsumen</h1>
+                <div class="card-box" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 12px;">No</th>
+                                <th style="padding: 12px;">Konsumen</th>
+                                <th style="padding: 12px;">Kendaraan</th>
+                                <th style="padding: 12px;">Durasi</th>
+                                <th style="padding: 12px;">Total Harga</th>
+                                <th style="padding: 12px;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-pesanan-body">
+                            <!-- Populated Dynamically -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div id="view-manajemen-akun" class="view-panel">
@@ -1161,7 +1208,8 @@
             onSnapshot 
         } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
-              // ==========================================
+        
+        // ==========================================
         // PROTEKSI OTENTIKASI & AUTO-LOGOUT 24 JAM
         // ==========================================
         const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 Jam dalam milidetik
@@ -1263,6 +1311,10 @@
         onSnapshot(collection(db, "orders"), (snapshot) => {
             ordersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateDashboardStatsAndCharts();
+            renderDataPemesan();
+            renderDataJenisBayar();
+            renderDataPerjalanan();
+            renderDataPesanan();
         });
 
         // --- GLOBAL WINDOW FUNCTIONS UNTUK HANDLER INLINE HTML ---
@@ -1644,6 +1696,127 @@
                             </div>
                         </div>
                     </div>
+                `;
+            });
+        }
+
+        // FUNGSI RENDER DATA PEMESAN REALTIME DARI ORDERS
+        function renderDataPemesan() {
+            const tbody = document.getElementById('table-pemesan-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (ordersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="padding: 15px; text-align: center; color: var(--text-muted);">Belum ada data pemesan.</td></tr>`;
+                return;
+            }
+
+            // Group by userId or namaKonsumen
+            const pemesanMap = {};
+            ordersList.forEach(o => {
+                const key = o.userId || o.namaKonsumen;
+                if (!pemesanMap[key]) {
+                    pemesanMap[key] = {
+                        nama: o.namaKonsumen || 'Konsumen',
+                        noHp: o.noHp || '-',
+                        totalOrder: 0
+                    };
+                }
+                pemesanMap[key].totalOrder += 1;
+            });
+
+            let i = 1;
+            Object.values(pemesanMap).forEach(p => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;">${i++}</td>
+                        <td style="padding: 12px; font-weight: 600;">${p.nama}</td>
+                        <td style="padding: 12px;">${p.noHp}</td>
+                        <td style="padding: 12px;">${p.totalOrder} Pesanan</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // FUNGSI RENDER DATA JENIS BAYAR REALTIME DARI ORDERS
+        function renderDataJenisBayar() {
+            const tbody = document.getElementById('table-jenis-bayar-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (ordersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="padding: 15px; text-align: center; color: var(--text-muted);">Belum ada transaksi pembayaran.</td></tr>`;
+                return;
+            }
+
+            ordersList.forEach((o, index) => {
+                const total = Number(o.totalHarga || 0).toLocaleString('id-ID');
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;">${index + 1}</td>
+                        <td style="padding: 12px; font-weight: 600;">${o.namaKonsumen || 'Konsumen'}</td>
+                        <td style="padding: 12px;">${o.merek || ''} ${o.tipe || ''}</td>
+                        <td style="padding: 12px; font-weight: 700; color: var(--primary);">Rp ${total}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: #ecfdf5; color: #10b981; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${o.status || 'Pending'}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // FUNGSI RENDER DATA PERJALANAN REALTIME DARI ORDERS
+        function renderDataPerjalanan() {
+            const tbody = document.getElementById('table-perjalanan-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (ordersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="padding: 15px; text-align: center; color: var(--text-muted);">Belum ada data perjalanan sewa.</td></tr>`;
+                return;
+            }
+
+            ordersList.forEach(o => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px; font-weight: 600;">${o.namaKonsumen || 'Konsumen'}</td>
+                        <td style="padding: 12px;">${o.noHp || '-'}</td>
+                        <td style="padding: 12px;">${o.merek || ''} ${o.tipe || ''}</td>
+                        <td style="padding: 12px;">${o.noPolisi || '-'}</td>
+                        <td style="padding: 12px;">${o.tanggalMulai || '-'}</td>
+                        <td style="padding: 12px;">${o.tanggalSelesai || '-'}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: #eff6ff; color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${o.status || 'Pending'}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // FUNGSI RENDER DATA PESANAN / ORDERS
+        function renderDataPesanan() {
+            const tbody = document.getElementById('table-pesanan-body');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            if (ordersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="padding: 15px; text-align: center; color: var(--text-muted);">Belum ada pesanan masuk.</td></tr>`;
+                return;
+            }
+
+            ordersList.forEach((o, index) => {
+                const total = Number(o.totalHarga || 0).toLocaleString('id-ID');
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px;">${index + 1}</td>
+                        <td style="padding: 12px; font-weight: 600;">${o.namaKonsumen || 'Konsumen'} (${o.noHp || '-'})</td>
+                        <td style="padding: 12px;">${o.merek || ''} ${o.tipe || ''} [${o.noPolisi || '-'}]</td>
+                        <td style="padding: 12px;">${o.tanggalMulai || ''} s/d ${o.tanggalSelesai || ''}</td>
+                        <td style="padding: 12px; font-weight: 700; color: var(--primary);">Rp ${total}</td>
+                        <td style="padding: 12px;">
+                            <span style="background: #fffbeb; color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">${o.status || 'Pending'}</span>
+                        </td>
+                    </tr>
                 `;
             });
         }
