@@ -321,15 +321,18 @@
                     showConfirmButton: false
                 });
 
-                // Cek Alur Pengalihan
+                // PENGECEKAN ALUR ROLE
                 if (userData && userData.role === 'superadmin') {
                     window.location.href = "dashboard-superadmin.html";
-                } else if (userData && userData.businessRegistered) {
-                    // Jika usaha rental sudah didaftarkan sebelumnya
-                    window.location.href = "dashboard-admin.html";
+                } else if (userData && userData.role === 'admin') {
+                    if (userData.businessRegistered) {
+                        window.location.href = "dashboard-admin.html";
+                    } else {
+                        window.location.href = "formulir-pendaftaran-klien.html";
+                    }
                 } else {
-                    // Klien baru yang belum mengisi pendaftaran usaha
-                    window.location.href = "formulir-pendaftaran-klien.html";
+                    // JIKA ROLE ADALAH KONSUMEN (ATAU TIDAK ADA ROLE)
+                    window.location.href = "dashboard-konsumen.html";
                 }
             } catch (error) {
                 let errorMsg = "Gagal masuk ke akun.";
@@ -368,24 +371,23 @@
 
                 await updateProfile(user, { displayName: fullname });
 
-                // Simpan data awal user ke Firestore
+                // SIMPAN DATA AWAL SEBAGAI KONSUMEN
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullname: fullname,
                     email: email,
-                    role: "admin",
-                    businessRegistered: false,
+                    role: "konsumen", // DIUBAH DARI ADMIN MENJADI KONSUMEN
                     createdAt: new Date().toISOString()
                 });
 
                 await Swal.fire({
                     icon: 'success',
                     title: 'Pendaftaran Berhasil!',
-                    text: 'Akun telah dibuat. Silakan masuk (login) untuk validasi.',
+                    text: 'Akun telah dibuat. Silakan masuk untuk mulai menyewa.',
                     confirmButtonColor: '#1e3c72'
                 });
 
-                // Kembalikan ke form Login di index.html untuk validasi
+                // Kembalikan ke form Login
                 document.getElementById("register-form").reset();
                 showLogin();
                 document.getElementById("login-email").value = email;
