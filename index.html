@@ -104,7 +104,7 @@
         /* Wadah Form Animasi Geser */
         .forms-wrapper {
             position: relative;
-            height: 280px;
+            height: 340px; /* Ditinggikan untuk opsi role */
             width: 100%;
             overflow: hidden;
             transition: height 0.4s ease;
@@ -135,7 +135,7 @@
             font-weight: 500;
         }
 
-        .input-group input {
+        .input-group input, .input-group select {
             width: 100%;
             padding: 12px 15px;
             border: 1.5px solid #e1e5eb;
@@ -146,7 +146,7 @@
             background: #fafafa;
         }
 
-        .input-group input:focus {
+        .input-group input:focus, .input-group select:focus {
             border-color: #1e3c72;
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(30, 60, 114, 0.1);
@@ -225,8 +225,15 @@
             <!-- FORM DAFTAR -->
             <form id="register-form" class="form" onsubmit="handleRegister(event)">
                 <div class="input-group">
+                    <label>Daftar Sebagai</label>
+                    <select id="register-role" required>
+                        <option value="konsumen">Konsumen (Penyewa Mobil)</option>
+                        <option value="admin">Klien (Pemilik Rental)</option>
+                    </select>
+                </div>
+                <div class="input-group">
                     <label>Nama Lengkap</label>
-                    <input type="text" id="register-fullname" placeholder="Masukkan nama lengkap sesuai identitas" required>
+                    <input type="text" id="register-fullname" placeholder="Masukkan nama lengkap" required>
                 </div>
                 <div class="input-group">
                     <label>Email</label>
@@ -234,7 +241,7 @@
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" id="register-password" placeholder="Buat password (minimal 8 karakter)" minlength="8" required>
+                    <input type="password" id="register-password" placeholder="Buat password (min. 8 karakter)" minlength="8" required>
                 </div>
                 <button type="submit" class="submit-btn" id="btn-register-submit">Daftar Sekarang</button>
             </form>
@@ -290,7 +297,7 @@
             loginForm.style.left = "-100%";
             registerForm.style.left = "0";
             btnActive.style.left = "50%";
-            formsWrapper.style.height = "360px"; 
+            formsWrapper.style.height = "420px"; // Ditinggikan sedikit untuk opsi role
             toggleBtns[0].classList.remove("active");
             toggleBtns[1].classList.add("active");
         };
@@ -357,6 +364,7 @@
         // REGISTER HANDLER
         window.handleRegister = async function(e) {
             e.preventDefault();
+            const role = document.getElementById("register-role").value; // Ambil role pilihan
             const fullname = document.getElementById("register-fullname").value.trim();
             const email = document.getElementById("register-email").value.trim();
             const password = document.getElementById("register-password").value;
@@ -371,19 +379,20 @@
 
                 await updateProfile(user, { displayName: fullname });
 
-                // SIMPAN DATA AWAL SEBAGAI KONSUMEN
+                // SIMPAN DATA BERDASARKAN ROLE PILIHAN
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid,
                     fullname: fullname,
                     email: email,
-                    role: "konsumen", // DIUBAH DARI ADMIN MENJADI KONSUMEN
+                    role: role, 
+                    businessRegistered: false, // Penting untuk alur klien/admin
                     createdAt: new Date().toISOString()
                 });
 
                 await Swal.fire({
                     icon: 'success',
                     title: 'Pendaftaran Berhasil!',
-                    text: 'Akun telah dibuat. Silakan masuk untuk mulai menyewa.',
+                    text: role === 'admin' ? 'Silakan masuk untuk mendaftarkan usaha Anda.' : 'Akun telah dibuat. Silakan masuk untuk mulai menyewa.',
                     confirmButtonColor: '#1e3c72'
                 });
 
